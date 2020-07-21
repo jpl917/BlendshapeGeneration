@@ -51,8 +51,8 @@ mkdir S
 ## results
 <p align="center">
 <img src="imgs/ref0.png" alt="Sample"  width="200" height="200"><img src="imgs/ref1.png" alt="Sample"  width="200" height="200">
-
-<img src="imgs/dst0.png" alt="Sample"  width="200" height="200"><img src="imgs/dst1.png" alt="Sample"  width="200" height="300">
+<p align="center">
+<img src="imgs/dst0.png" alt="Sample"  width="200" height="200"><img src="imgs/dst1.png" alt="Sample"  width="200" height="200">
 <p align="center">
 <em>Upper: reference blendshapes, Below: calculated blendshapes for another subject</em>
 
