@@ -5,6 +5,7 @@
 #include "TriangleGradient.h"
 #include "MeshTransfer.h"
 #include "BlendshapeGenerator.h"
+#include "DeformationTransfer.h"
 
 
 struct CostFunctor {
@@ -25,6 +26,7 @@ public:
 	static void testTriangleGradient();
     static void testMeshTransfer();
     static void testBlendshapeGeneration();
+    static void testDeformationTransfer();
 };
 
 

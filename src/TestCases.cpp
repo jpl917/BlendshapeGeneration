@@ -106,14 +106,42 @@ void TestCases::testBlendshapeGeneration()
     bg.blendshapeGeneration();
 }
 
-int main()
+void TestCases::testDeformationTransfer(){  
+    trimesh::TriMesh A0 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_0.obj");
+    trimesh::TriMesh A1 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_22.obj");
+    trimesh::TriMesh B0 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_0.obj");
+    trimesh::TriMesh B1;
+    
+    DeformationTransfer dt;
+    dt.init(A0, B0);
+    dt.transfer(A1, B1);
+    
+    /*
+    #pragma omp parallel for num_threads(8)
+	for (int iMesh = 0; iMesh < 47; iMesh++)
+	{
+		const int tid = omp_get_thread_num();
+	}
+     */
+    
+    return;
+}
+
+int main(int argc, char** argv)
 {
+//     if (argc != 3 && argc != 4)
+// 	{
+// 		printf("Usage: TestCase [src_folder] [target0.obj] [result_folder]");
+// 		return -1;
+// 	}
+    
 	TestCases test;
     
     //test.testEigenMatrix();
     //test.testMeshTransfer();
     
-    test.testBlendshapeGeneration();
+    //test.testBlendshapeGeneration();
+    test.testDeformationTransfer();
     
     return 0;
 }

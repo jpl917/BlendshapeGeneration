@@ -79,6 +79,7 @@ add_library(${PROJECT_NAME} STATIC
 src/TriangleGradient.cpp
 src/MeshTransfer.cpp 
 src/BlendshapeGenerator.cpp
+src/DeformationTransfer.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${ALL_NEED_LIBS})
