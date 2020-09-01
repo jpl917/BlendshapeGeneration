@@ -16,9 +16,9 @@ void DeformationTransfer::init(const trimesh::TriMesh& _A0,
     m_anchors.clear();
     //m_anchors.push_back(0);
     
-//     for(int i=0; i<m_A0.vertices.size(); i++){
-//         if(m_A0.is_bdy(i)) m_anchors.push_back(i);
-//     }
+    for(int i=0; i<m_A0.vertices.size(); i++){
+        if(m_A0.is_bdy(i)) m_anchors.push_back(i);
+    }
     cout<<"# anchor: "<<m_anchors.size()<<endl;
     
     
@@ -34,24 +34,28 @@ void DeformationTransfer::init(const trimesh::TriMesh& _A0,
     /**********************************************
      * parameters
     ***********************************************/
-//  const static double Transfer_Weight_Smoothness = 1e-3;
-// 	const static double Transfer_Weight_Identity   = 1e-6;
-// 	const static double Transfer_Weight_Correspond = 1.0;
-// 	const static double Transfer_Weight_Anchor     = 1e8;
-// 	const static double Transfer_Weight_Regularization = 1e-8;
+//  const double Transfer_Weight_Smoothness = 1e-3;
+// 	const double Transfer_Weight_Identity   = 1e-6;
+// 	const double Transfer_Weight_Correspond = 1.0;
+// 	const double Transfer_Weight_Anchor     = 1e8;
+// 	const double Transfer_Weight_Regularization = 1e-8;
 
-    w_anchor = 1;//Transfer_Weight_Anchor         / (1e-3f + m_anchorMat.rows());
-    w_reg    = 0;//Transfer_Weight_Regularization / (1e-3f + m_regAtA.rows());
-    w_1      = 1;//Transfer_Weight_Correspond     / (1e-3f + m_E1Mat.rows());
+//     w_anchor = Transfer_Weight_Anchor         / (1e-3f + m_anchorMat.rows());
+//     w_reg    = Transfer_Weight_Regularization / (1e-3f + m_regAtA.rows());
+//     w_corres = Transfer_Weight_Correspond     / (1e-3f + m_E1Mat.rows());
+
+    w_anchor = 0; 
+    w_reg    = 0; 
+    w_corres = 1; 
     
-    cout<<"Parameters = [anchor: " << w_anchor <<  "]  [reglar: " << w_reg<< "]  [corres: " << w_1 <<"]"<<endl;
+    cout<<"Parameters = [anchor: " << w_anchor <<  "]  [reglar: " << w_reg<< "]  [corres: " << w_corres <<"]"<<endl;
     
 
     
     m_anchorMatT = m_anchorMat.transpose();  
     m_E1MatT = m_E1Mat.transpose();
     
-    m_AtA = w_1 * m_E1MatT * m_E1Mat + w_anchor * m_anchorMatT * m_anchorMat  + w_reg * m_regAtA;
+    m_AtA = w_corres * m_E1MatT * m_E1Mat + w_anchor * m_anchorMatT * m_anchorMat  + w_reg * m_regAtA;
     m_solver.compute(m_AtA);
 
     
@@ -73,7 +77,7 @@ bool DeformationTransfer::transfer(const trimesh::TriMesh& _A1,
     setupE1Rhs(_A1);
     
     //// sum all the energy terms
-    m_Atb = m_anchorRegSumAtb + w_1 * m_E1MatT * m_E1Rhs;
+    m_Atb = m_anchorRegSumAtb + w_corres * m_E1MatT * m_E1Rhs;
     
     //solve
     m_x = m_solver.solve(m_Atb);
@@ -95,7 +99,7 @@ void DeformationTransfer::saveResultMesh(const Eigen::Matrix<double, -1, 1>& m_x
             _B1.vertices[i][k] = m_x[k * (m_x.size()/3) + i];
         }
     }
-    _B1.write("output.ply");
+    _B1.write("ret_deformTransfer.ply");
 }
 
 
@@ -135,6 +139,30 @@ void DeformationTransfer::setupRegularizationMat(){
 }
 
 
+Eigen::Matrix<double, 3, 4> triangleLocalFrame(
+    const trimesh::TriMesh& mesh, const int& fidx)
+{
+	trimesh::TriMesh::Face f = mesh.faces[fidx];
+	
+	trimesh::point v0 = mesh.vertices[f[0]];
+	trimesh::point v1 = mesh.vertices[f[1]];
+	trimesh::point v2 = mesh.vertices[f[2]];
+	
+	Eigen::Vector3d v1v0 = Eigen::Vector3d(v1.x-v0.x, v1.y-v0.y, v1.z-v0.z);
+	Eigen::Vector3d v2v0 = Eigen::Vector3d(v2.x-v0.x, v2.y-v0.y, v2.z-v0.z);
+	
+	Eigen::Vector3d n = v1v0.cross(v2v0);
+	Eigen::Vector3d nn = n.normalized();
+	
+	Eigen::Matrix<double, 3, 4> G;
+
+	G << v0[0], v1[0], v2[0], v0[0] + nn[0],
+		 v0[1], v1[1], v2[1], v0[1] + nn[1],
+		 v0[2], v1[2], v2[2], v0[2] + nn[2];
+
+	return G;
+}
+
 
 void DeformationTransfer::setupRegularizationRhs(){
     m_regAtb.resize(3*m_numTotal);
@@ -145,7 +173,15 @@ void DeformationTransfer::setupRegularizationRhs(){
             m_regAtb[k * m_numTotal + i] = m_B0.vertices[i][k];
         }
     }
+    
+    for(int i=0; i<m_numFaces; i++){
+        Eigen::Matrix<double, 3, 4> localFrame = triangleLocalFrame(m_B0, i);
+        for(int k=0; k<3; k++){
+            m_regAtb[k * m_numTotal + m_numVerts + i] = localFrame(k, 3);
+        }
+    }
 }
+
 
 
 Eigen::Matrix3d DeformationTransfer::triangleGradient(
@@ -168,8 +204,6 @@ Eigen::Matrix3d DeformationTransfer::triangleGradient(
 	G << v1v0[0], v2v0[0], nn[0],
 		 v1v0[1], v2v0[1], nn[1],
 		 v1v0[2], v2v0[2], nn[2];
-    
-    //cout<<G<<endl;
 
 	return G;
 }
@@ -183,6 +217,7 @@ Eigen::Matrix3d DeformationTransfer::triangleGradient(
 inline void getMatrixT(const Eigen::Matrix3d& G,
                        Eigen::Matrix<double, 3, 4>& A)
 {
+    // G inverse()
     Eigen::Matrix3d V = G.inverse();
     //|-V(0, 0) - V(1, 0) - V(2, 0),   V(0, 0),   V(1, 0),   V(2, 0)|
     //|-V(0, 1) - V(1, 1) - V(2, 1),   V(0, 1),   V(1, 1),   V(2, 1)|
@@ -204,6 +239,7 @@ inline void getMatrixT(const Eigen::Matrix3d& G,
 	A(2, 3) =  V(2, 2);
 }
 
+
 //  Eigen::Matrix3d TVinv = TV.inverse();
 //         Eigen::Vector3d s;
 //         s[0] = -TVinv(0, 0) - TVinv(1, 0);
@@ -216,29 +252,25 @@ inline void getMatrixT(const Eigen::Matrix3d& G,
 
 
 
+// The matrix T is in block diag style:
+// | A 0 0 |
+// | 0 A 0 |
+// | 0 0 A |
+// where each A is a 3x4 matrix  
 inline void fillCooSys(std::vector<Eigen::Triplet<double> >& cooSys,
                        const Eigen::Matrix<double, 3, 4>& T,
                        const int& row, const int& m_numTotal,
                        const vector<int>& id)
 {
-    // The matrix T is in block diag style:
-	// | A 0 0 |
-	// | 0 A 0 |
-	// | 0 0 A |
-	// where each A is a 3x4 matrix  
-    const static int nBlocks = 3;
-    const static int nPoints = 4;
-    const static int nCoords = 3;
-    
     int pos = row * 4;
-    for(int iBlock=0; iBlock<nBlocks; iBlock++) // 3
+    for(int k = 0; k < 3; k++) // 3
     {  
-        int yb = iBlock * nCoords;        
-        for(int y = 0; y < nCoords; y++)   // 3
+        int yb = k * 3;        
+        for(int y = 0; y < 3; y++)   // 3
         {
-            for(int x = 0; x<nPoints; x++) // 4
+            for(int x = 0; x<4; x++) // 4
             {
-                int col = m_numTotal * iBlock + id[x];  
+                int col = m_numTotal * k + id[x];  
                 cooSys[pos++] = Eigen::Triplet<double>(row+yb+y, col, T(y, x));
             }
         }
@@ -248,9 +280,10 @@ inline void fillCooSys(std::vector<Eigen::Triplet<double> >& cooSys,
 
 
 // gradient transfer for mesh B0
+// Ax=b
+// A(m_numFaces * 9, m_numTotal * 3)
 void DeformationTransfer::setupE1Mat(){
     std::vector<Eigen::Triplet<double> > cooSys;
-    
     cooSys.resize(m_numFaces * 9 * 4);   
     
     Eigen::Matrix<double, 3, 4> Ti;
@@ -258,7 +291,7 @@ void DeformationTransfer::setupE1Mat(){
     
     for(int fidx=0; fidx<m_numFaces; fidx++){
         Eigen::Matrix3d G = triangleGradient(m_B0, fidx);
-        getMatrixT(G, Ti);
+        getMatrixT(G, Ti); //Ti (3, 4)
         
         trimesh::TriMesh::Face f = m_B0.faces[fidx];
         vector<int> pidx = {f[0], f[1], f[2], m_numVerts + fidx};
@@ -267,7 +300,8 @@ void DeformationTransfer::setupE1Mat(){
         fillCooSys(cooSys, Ti, row, m_numTotal, pidx);
     }
     
-    //equation size
+    
+    //fill matrix A
     m_E1Mat.resize(m_numFaces * 9, m_numTotal * 3);
     if(cooSys.size()>0){  
         m_E1Mat.setFromTriplets(cooSys.begin(), cooSys.end());  
@@ -288,21 +322,12 @@ void DeformationTransfer::setupE1Rhs(const trimesh::TriMesh& A1){
         Eigen::Matrix3d G0 = triangleGradient(m_A0, fidx);        
         getMatrixT(G0, Si_A);
         
-        Eigen::Matrix3d G1 = triangleGradient(A1, fidx);
-        
-        int idx0 = A1.faces[fidx][0];
-        trimesh::point p0 =A1.vertices[idx0];  //mesh.vertices[f[0]];
+        Eigen::Matrix<double, 3, 4> localFrame = triangleLocalFrame(A1, fidx);
         
         for(int k=0; k<4; k++){
-            if(k==0){
-                Si_x[0][k] = p0.x;
-                Si_x[1][k] = p0.y;
-                Si_x[2][k] = p0.z;
-            }else{
-                Si_x[0][k] = G1(0, k-1) + p0.x;
-                Si_x[1][k] = G1(1, k-1) + p0.y;
-                Si_x[2][k] = G1(2, k-1) + p0.z;
-            }
+            Si_x[0][k] = localFrame(0, k);
+            Si_x[1][k] = localFrame(1, k);
+            Si_x[2][k] = localFrame(2, k);
         }
         
         Si_b[0] = Si_A * Si_x[0];

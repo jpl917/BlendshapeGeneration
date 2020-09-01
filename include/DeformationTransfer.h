@@ -12,9 +12,13 @@ typedef Eigen::Matrix3f Mat3f;
 typedef Eigen::Vector3i Int3;
 typedef Eigen::Vector4i Int4;
 
-// Input:  A0, A1, B0
-// Output: B1
-// Where Ai, Bi are triangle meshes with the same topology
+/* 
+ * Input:  
+ *      A0, A1, B0
+ * Output: 
+ *      B1
+ * Where Ai, Bi are triangle meshes with the same topology
+ */
 class DeformationTransfer{
 public:
     DeformationTransfer(){}
@@ -55,7 +59,7 @@ private:
     //weigths
     double w_anchor;
     double w_reg;
-    double w_1;
+    double w_corres;
     
     // for anchor
     SpMat m_anchorMat;

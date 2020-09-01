@@ -23,12 +23,21 @@
 #include "TriMesh.h"
 #include "TriMesh_algo.h"
 
-
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
 #include <eigen3/Eigen/LU>
 #include <Eigen/Sparse>
+#include <Eigen/SparseLU>
 #include <Eigen/CholmodSupport>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <Eigen/SVD>
+#include <Eigen/IterativeLinearSolvers>
+#include <Eigen/SparseCholesky>
+#include <Eigen/Geometry>
+#include <Eigen/StdVector>
+#include <Eigen/LU>
 
 using namespace std;
 using namespace Eigen;

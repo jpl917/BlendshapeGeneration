@@ -36,14 +36,9 @@ void MeshTransfer::computeT0grad(){
         Eigen::Matrix3d TV = triangleGradient(m_T0, i);
         Eigen::Matrix3d TVinv = TV.inverse();
         
-        Eigen::Vector3d s;
-        s[0] = -TVinv(0, 0) - TVinv(1, 0);
-        s[1] = -TVinv(0, 1) - TVinv(1, 1);
-        s[2] = -TVinv(0, 2) - TVinv(1, 2);
-        
-        m_T0grad[i] << s[0], TVinv(0,0), TVinv(1,0),
-                       s[1], TVinv(0,1), TVinv(1,1),
-                       s[2], TVinv(0,2), TVinv(1,2);
+        m_T0grad[i] << -TVinv(0, 0) - TVinv(1, 0),    TVinv(0,0),    TVinv(1,0),
+                       -TVinv(0, 1) - TVinv(1, 1),    TVinv(0,1),    TVinv(1,1),
+                       -TVinv(0, 2) - TVinv(1, 2),    TVinv(0,2),    TVinv(1,2);
     }
 }
 
@@ -83,6 +78,8 @@ trimesh::TriMesh MeshTransfer::transfer(const std::vector<Eigen::Matrix3d>& S1gr
     int nrows = nrowsA + nrowsC;
     int ncols = numVerts;
     
+    
+    cout<<"num_stationary_vertices: "<<m_stationary_vertices.size()<<endl;
 //     debug("numFaces", numFaces);
 //     debug("numVerts", numVerts);
 //     debug("nsv", nsv);
@@ -192,7 +189,7 @@ trimesh::TriMesh MeshTransfer::transfer(const std::vector<Eigen::Matrix3d>& S1gr
         ret.vertices[i] = trimesh::vec3(x(i,0),x(i,1), x(i,2));
     }
     
-    //ret.write("ret.ply");
+    ret.write("ret_meshDeform.ply");
     return ret;
 }
 

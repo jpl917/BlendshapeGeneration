@@ -89,27 +89,29 @@ void TestCases::testTriangleGradient()
 }
 
 
-void TestCases::testMeshTransfer()
-{
+void TestCases::testMeshTransfer(){
+    cout<<"Test Mesh Transfer"<<endl;
+    
     MeshTransfer transfer;
     trimesh::TriMesh S0 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_0.obj");
     trimesh::TriMesh S1 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_1.obj");
     trimesh::TriMesh T0 = *trimesh::TriMesh::read("../data/Tester_101/Blendshape/shape_0.obj");
     transfer.setSource(S0);
-    transfer.setTarget(S0);
+    transfer.setTarget(T0);
     transfer.transfer(S1);
 }   
 
-void TestCases::testBlendshapeGeneration()
-{
+void TestCases::testBlendshapeGeneration(){
     BlendshapeGenerator bg;
     bg.blendshapeGeneration();
 }
 
 void TestCases::testDeformationTransfer(){  
+    cout<<"Test Deformation Transfer"<<endl;
+    
     trimesh::TriMesh A0 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_0.obj");
-    trimesh::TriMesh A1 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_22.obj");
-    trimesh::TriMesh B0 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_0.obj");
+    trimesh::TriMesh A1 = *trimesh::TriMesh::read("../data/Tester_1/Blendshape/shape_1.obj");
+    trimesh::TriMesh B0 = *trimesh::TriMesh::read("../data/Tester_101/Blendshape/shape_0.obj");
     trimesh::TriMesh B1;
     
     DeformationTransfer dt;
@@ -138,7 +140,7 @@ int main(int argc, char** argv)
 	TestCases test;
     
     //test.testEigenMatrix();
-    //test.testMeshTransfer();
+    test.testMeshTransfer();
     
     //test.testBlendshapeGeneration();
     test.testDeformationTransfer();
