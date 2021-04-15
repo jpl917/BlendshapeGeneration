@@ -3,6 +3,9 @@ This is an implementation of "Example-Based Facial Rigging, Siggraph 2010."
 
 It is a method for generating facial blendshape rigs from a set of example poses of a CG character.
 
+<p align="center">
+<img src="imgs/pipeline.png" alt="Sample"  width="850" height="400">
+
 ## Dependencies
 * trimesh2
 * Eigen 3.3.3
@@ -48,7 +51,7 @@ mkdir S
 ./TestCases
 ```
 
-## results
+## Results
 <p align="center">
 <img src="imgs/ref0.png" alt="Sample"  width="200" height="200"><img src="imgs/ref1.png" alt="Sample"  width="200" height="200">
 <p align="center">
@@ -56,7 +59,7 @@ mkdir S
 <p align="center">
 <em>Upper: reference blendshapes, Below: calculated blendshapes for another subject</em>
 
-## install problems
+## Install problems
 
 ### install gflags
 ```
